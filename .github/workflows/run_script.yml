@@ -27,6 +27,9 @@ jobs:
       - name: Check if all.txt exists
         run: ls -l
 
+      - name: Clean up __pycache__
+        run: rm -rf __pycache__
+
       - name: Deploy to GitHub Pages
         run: |
           git config --global user.name "GitHub Actions"
