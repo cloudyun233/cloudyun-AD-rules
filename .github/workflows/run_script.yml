@@ -24,6 +24,9 @@ jobs:
       - name: Run script
         run: python merge_rules.py
 
+      - name: Check if all.txt exists
+        run: ls -l
+
       - name: Deploy to GitHub Pages
         run: |
           git config --global user.name "GitHub Actions"
