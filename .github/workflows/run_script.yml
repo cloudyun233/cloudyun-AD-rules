@@ -12,6 +12,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.PAT }}  # 使用 PAT 检出代码
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -37,4 +39,4 @@ jobs:
           git rm -f __pycache__/config.cpython-312.pyc || true
           git add all.txt
           git commit -m "Update all.txt - $(date +'%Y-%m-%d %H:%M:%S')"
-          git push https://${{ github.actor }}:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git main
+          git push https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git main
