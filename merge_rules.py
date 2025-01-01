@@ -32,6 +32,7 @@ def save_rules_to_file(prefix, rules, filename):
         # 写入自定义前缀信息
         file.write("! Title: cloudyun-AD-rules\n")
         file.write(f"! Version: {prefix['Version']}\n")
+        file.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
         file.write(f"! Total lines: {len(rules)}\n")
         # 写入规则
         for rule in rules:

@@ -1,5 +1,4 @@
 https://github.com/217heidai/adblockfilters
 https://github.com/privacy-protection-tools/anti-AD
 https://github.com/8680/GOODBYEADS
-https://github.com/uniartisan/adblock_list
 https://github.com/afwfv/DD-AD
