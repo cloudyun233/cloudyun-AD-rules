@@ -1,5 +1,5 @@
 git add .
-git commit -m "update"
+git commit -m "添加规则"
 git push origin main
 
 git pull origin main

@@ -68,14 +68,6 @@ def main():
         print_file_line_count(OUTPUT_FILE, f"{OUTPUT_FILE} 文件")
         print(f"规则已合并、去重，并保存到 {OUTPUT_FILE}")
 
-        # 将文件推送到 GitHub Pages
-        if os.getenv('GITHUB_ACTIONS'):  # 仅在 GitHub Actions 中运行
-            os.system('git config --global user.name "GitHub Actions"')
-            os.system('git config --global user.email "actions@github.com"')
-            os.system(f'git add {OUTPUT_FILE}')
-            os.system(f'git commit -m "Update {OUTPUT_FILE} - {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}"')
-            os.system('git push origin main')
-
     except Exception as e:
         print(f"发生错误：{e}")
 
