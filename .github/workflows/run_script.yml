@@ -21,12 +21,19 @@ jobs:
           python-version: '3.9'
 
       - name: Install dependencies
-        run: pip install requests
+        run: |
+          pip install requests
+          pip install loguru
+          pip install dnspython
+          pip install httpx
 
-      - name: Run script
+      - name: Run merge_rules.py
         run: python merge_rules.py
 
-      - name: Check if all.txt exists
+      - name: Run dispose.py
+        run: python dispose.py
+
+      - name: Check if files exist
         run: ls -l
 
       - name: Clean up __pycache__
@@ -37,6 +44,6 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git rm -f __pycache__/config.cpython-312.pyc || true
-          git add all.txt
-          git commit -m "Update all.txt - $(date +'%Y-%m-%d %H:%M:%S')"
+          git add all.txt beforeall.txt
+          git commit -m "Update all.txt and beforeall.txt - $(date +'%Y-%m-%d %H:%M:%S')"
           git push https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git main

@@ -12,4 +12,4 @@ SOURCE_URLS = [
 ]
 
 # 输出文件名
-OUTPUT_FILE = "all.txt"
+OUTPUT_FILE = "beforeall.txt"
