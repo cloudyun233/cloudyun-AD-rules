@@ -73,32 +73,36 @@ class RuleParser:
             is_valid = await self.__resolve(dnsresolver, domain)
             return domain, is_valid
 
-    def __test_domains(self, domainList, nameservers, port=53):
+    async def __test_domains(self, domainList, nameservers, port=53):
         """测试域名列表中的域名，获取其IP地址"""
         logger.info("Resolving domains...")
         dnsresolver = DNSResolver()
         dnsresolver.nameservers = nameservers  # 设置DNS服务器
         dnsresolver.port = port
 
-        loop = asyncio.get_event_loop()
         semaphore = asyncio.Semaphore(500)  # 限制并发量
 
         # 添加异步任务
         taskList = []
         total_domains = len(domainList)
-        for index, domain in enumerate(domainList, 1):
+        for domain in domainList:
             task = asyncio.ensure_future(self.__pingx(dnsresolver, domain, semaphore))
             taskList.append(task)
 
-            # 每处理 5000 个域名，输出一次进度
-            if index % 5000 == 0 or index == total_domains:
-                logger.info(f"已处理 {index}/{total_domains} 个域名（{index / total_domains * 100:.2f}%）")
+        # 监控任务完成进度
+        valid_domains = set()
+        completed_count = 0
+        for future in asyncio.as_completed(taskList):
+            domain, is_valid = await future
+            completed_count += 1
 
-        # 等待所有任务完成
-        loop.run_until_complete(asyncio.wait(taskList))
+            if is_valid:
+                valid_domains.add(domain)
 
-        # 获取任务结果
-        valid_domains = {task.result()[0] for task in taskList if task.result()[1]}
+            # 每完成 5000 个任务，输出一次进度
+            if completed_count % 5000 == 0 or completed_count == total_domains:
+                logger.info(f"已解析 {completed_count}/{total_domains} 个域名（{completed_count / total_domains * 100:.2f}%）")
+
         return valid_domains
 
     def filter_valid_rules(self):
@@ -109,8 +113,9 @@ class RuleParser:
             global_nameservers = ["8.8.8.8", "1.1.1.1", "9.9.9.9"]  # 国外DNS
 
             # 解析域名
-            valid_domains = self.__test_domains(self.domain_set, china_nameservers)
-            valid_domains.update(self.__test_domains(self.domain_set, global_nameservers))
+            loop = asyncio.get_event_loop()
+            valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, china_nameservers))
+            valid_domains.update(loop.run_until_complete(self.__test_domains(self.domain_set, global_nameservers)))
             self.valid_domains = valid_domains
 
             # 过滤有效规则
