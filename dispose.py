@@ -19,6 +19,7 @@ class RuleParser:
         self.domain_set = set()  # 存储提取的域名
         self.total_rules = 0  # 总规则数量
         self.valid_domains = set()  # 存储有效的域名
+        self.header_comments = []  # 存储开头的注释行
 
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
@@ -48,6 +49,8 @@ class RuleParser:
         try:
             with open(self.input_file, "r", encoding="utf-8") as f:
                 for line in f:
+                    if line.startswith("!"):  # 保留开头的注释行
+                        self.header_comments.append(line.strip())
                     self.total_rules += 1  # 统计总规则数量
                     rule, domain = self.__parse_line(line)
                     if rule is not None:  # 如果是有效规则
@@ -111,18 +114,18 @@ class RuleParser:
         """过滤有效的规则"""
         try:
             # 国内和国外DNS服务器
-            china_nameservers = ["119.29.29.29", "223.6.6.6"]  # 国内DNS
+            china_nameservers = ["119.29.29.29", "223.6.6.6", "180.76.76.76", "180.184.1.1", "114.114.114.114"]  # 国内DNS
             global_nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]  # 国外DNS
 
             # 解析域名
             loop = asyncio.get_event_loop()
-            valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, global_nameservers))
+            valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, china_nameservers))
 
             # 只解析未成功的域名
             unresolved_domains = self.domain_set - valid_domains
             if unresolved_domains:
                 logger.info(f"开始解析未成功的 {len(unresolved_domains)} 个域名...")
-                valid_domains.update(loop.run_until_complete(self.__test_domains(unresolved_domains, china_nameservers)))
+                valid_domains.update(loop.run_until_complete(self.__test_domains(unresolved_domains, global_nameservers)))
 
             self.valid_domains = valid_domains
 
@@ -143,6 +146,13 @@ class RuleParser:
         """保存有效的规则到文件"""
         try:
             with open(self.output_file, "w", encoding="utf-8") as f:
+                # 更新注释行中的 Total lines
+                for comment in self.header_comments:
+                    if comment.startswith("! Total lines:"):
+                        f.write(f"! Total lines: {len(rules)}\n")
+                    else:
+                        f.write(comment + "\n")
+                # 写入过滤后的规则
                 for line in rules:
                     f.write(line + "\n")
             logger.info(f"Saved {len(rules)} rules to {self.output_file}.")
@@ -172,6 +182,3 @@ if __name__ == "__main__":
     # 保存有效规则
     if valid_rules:
         parser.save_rules(valid_rules)
-
-
-
