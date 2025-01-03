@@ -23,7 +23,7 @@ class RuleParser:
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
         line = line.strip()
-        if not line or line.startswith("!"):  # 忽略空行和注释
+        if not line or line.startswith("!") or line.startswith("#"):  # 忽略空行和注释
             return line, None
 
         # 处理正则表达式规则
@@ -37,8 +37,10 @@ class RuleParser:
         elif line.startswith("||") and line.endswith("^"):  # 黑名单规则
             domain = line[2:-1]  # 去掉 || 和 ^
             return line, domain
-        elif re.match(r"^\S+\.\S+$", line):  # 简单域名规则
-            return line, line
+        elif re.match(r"^\S+\s+\S+$", line):  # 简单域名规则（假设格式为 IP 地址 + 域名）
+            parts = line.split(None, 1)
+            domain = parts[1]
+            return line, domain
         return None, None  # 无效规则
 
     def parse_rules(self):
@@ -141,10 +143,7 @@ class RuleParser:
         """保存有效的规则到文件"""
         try:
             with open(self.output_file, "w", encoding="utf-8") as f:
-                # 更新 Total lines
                 for line in rules:
-                    if line.startswith("! Total lines:"):
-                        line = f"! Total lines: {len(rules)}\n"
                     f.write(line + "\n")
             logger.info(f"Saved {len(rules)} rules to {self.output_file}.")
         except Exception as e:
@@ -173,3 +172,6 @@ if __name__ == "__main__":
     # 保存有效规则
     if valid_rules:
         parser.save_rules(valid_rules)
+
+
+
