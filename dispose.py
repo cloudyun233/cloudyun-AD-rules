@@ -1,7 +1,12 @@
 import os
-import re
+import re  # 导入 re 模块
 import asyncio
-from loguru import logger
+from loguru import logger  # 导入 logger
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import httpx
+import IPy
+from tld import get_tld
 from dns.asyncresolver import Resolver as DNSResolver
 from dns.rdatatype import RdataType as DNSRdataType
 
@@ -68,33 +73,33 @@ class RuleParser:
             is_valid = await self.__resolve(dnsresolver, domain)
             return domain, is_valid
 
-def __test_domains(self, domainList, nameservers, port=53):
-    """测试域名列表中的域名，获取其IP地址"""
-    logger.info("Resolving domains...")
-    dnsresolver = DNSResolver()
-    dnsresolver.nameservers = nameservers  # 设置DNS服务器
-    dnsresolver.port = port
+    def __test_domains(self, domainList, nameservers, port=53):
+        """测试域名列表中的域名，获取其IP地址"""
+        logger.info("Resolving domains...")
+        dnsresolver = DNSResolver()
+        dnsresolver.nameservers = nameservers  # 设置DNS服务器
+        dnsresolver.port = port
 
-    loop = asyncio.get_event_loop()
-    semaphore = asyncio.Semaphore(500)  # 限制并发量
+        loop = asyncio.get_event_loop()
+        semaphore = asyncio.Semaphore(500)  # 限制并发量
 
-    # 添加异步任务
-    taskList = []
-    total_domains = len(domainList)
-    for index, domain in enumerate(domainList, 1):
-        task = asyncio.ensure_future(self.__pingx(dnsresolver, domain, semaphore))
-        taskList.append(task)
+        # 添加异步任务
+        taskList = []
+        total_domains = len(domainList)
+        for index, domain in enumerate(domainList, 1):
+            task = asyncio.ensure_future(self.__pingx(dnsresolver, domain, semaphore))
+            taskList.append(task)
 
-        # 每处理 5000 个域名，输出一次进度
-        if index % 5000 == 0 or index == total_domains:
-            logger.info(f"已处理 {index}/{total_domains} 个域名（{index / total_domains * 100:.2f}%）")
+            # 每处理 5000 个域名，输出一次进度
+            if index % 5000 == 0 or index == total_domains:
+                logger.info(f"已处理 {index}/{total_domains} 个域名（{index / total_domains * 100:.2f}%）")
 
-    # 等待所有任务完成
-    loop.run_until_complete(asyncio.wait(taskList))
+        # 等待所有任务完成
+        loop.run_until_complete(asyncio.wait(taskList))
 
-    # 获取任务结果
-    valid_domains = {task.result()[0] for task in taskList if task.result()[1]}
-    return valid_domains
+        # 获取任务结果
+        valid_domains = {task.result()[0] for task in taskList if task.result()[1]}
+        return valid_domains
 
     def filter_valid_rules(self):
         """过滤有效的规则"""
