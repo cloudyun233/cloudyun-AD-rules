@@ -26,6 +26,7 @@ jobs:
           pip install loguru
           pip install dnspython
           pip install httpx
+          pip install IPy tld
 
       - name: Run merge_rules.py
         run: python merge_rules.py
