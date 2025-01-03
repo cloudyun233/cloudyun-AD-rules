@@ -109,18 +109,18 @@ class RuleParser:
         """过滤有效的规则"""
         try:
             # 国内和国外DNS服务器
-            china_nameservers = ["114.114.114.114", "223.5.5.5", "119.29.29.29"]  # 国内DNS
-            global_nameservers = ["8.8.8.8", "1.1.1.1", "9.9.9.9"]  # 国外DNS
+            china_nameservers = ["119.29.29.29", "223.6.6.6"]  # 国内DNS
+            global_nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]  # 国外DNS
 
             # 解析域名
             loop = asyncio.get_event_loop()
-            valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, china_nameservers))
+            valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, global_nameservers))
 
             # 只解析未成功的域名
             unresolved_domains = self.domain_set - valid_domains
             if unresolved_domains:
                 logger.info(f"开始解析未成功的 {len(unresolved_domains)} 个域名...")
-                valid_domains.update(loop.run_until_complete(self.__test_domains(unresolved_domains, global_nameservers)))
+                valid_domains.update(loop.run_until_complete(self.__test_domains(unresolved_domains, china_nameservers)))
 
             self.valid_domains = valid_domains
 
