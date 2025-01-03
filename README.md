@@ -5,8 +5,9 @@
 这是一名大学生在元旦节闲暇之余，由于家里小米路由器 `/data` 分区太小，无法直接放下几个广告过滤规则，所以编写的广告过滤规则仓库，主要供个人使用，适用于 ADguardHome 等 DNS 过滤工具。仓库中的规则源自多个上游规则，经过合并与去重处理后最终生成。🎯
 
 **订阅链接**：  
-📥 一键订阅所有规则：  
-[https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all.txt)
+📥 一键订阅规则：  
+[检测后的有效规则（可能有错误）](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all.txt)
+[合并去重后的规则](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/beforeall.txt)
 
 ## 上游规则简介 📚
 
