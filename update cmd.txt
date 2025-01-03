@@ -3,3 +3,5 @@ git commit -m "更新检测"
 git push origin main
 
 git pull origin main
+
+git push --force origin main
