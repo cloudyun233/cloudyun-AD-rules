@@ -85,7 +85,7 @@ class RuleParser:
         dnsresolver.nameservers = nameservers  # 设置DNS服务器
         dnsresolver.port = port
 
-        semaphore = asyncio.Semaphore(500)  # 限制并发量
+        semaphore = asyncio.Semaphore(750)  # 限制并发量
 
         # 添加异步任务
         taskList = []
