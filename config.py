@@ -13,3 +13,6 @@ SOURCE_URLS = [
 
 # 输出文件名
 OUTPUT_FILE = "beforeall.txt"
+
+# 本地规则文件路径
+LOCAL_RULE_FILE = "white.txt"  # 新增本地规则文件路径

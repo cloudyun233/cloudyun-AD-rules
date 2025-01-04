@@ -4,7 +4,7 @@
 import requests
 import os
 from datetime import datetime
-from config import SOURCE_URLS, OUTPUT_FILE  # 从 config.py 导入配置
+from config import SOURCE_URLS, OUTPUT_FILE, LOCAL_RULE_FILE  # 从 config.py 导入配置
 
 def download_rules(url):
     """从 URL 下载规则文件，返回规则列表和前缀信息"""
@@ -18,6 +18,20 @@ def download_rules(url):
         return prefix, rules
     else:
         raise Exception(f"Failed to download rules from {url}")
+
+def load_local_rules(filepath):
+    """从本地文件加载规则"""
+    if os.path.exists(filepath):
+        with open(filepath, 'r', encoding='utf-8') as file:
+            lines = file.read().splitlines()
+            # 提取前缀信息（以 ! 开头的行）
+            prefix = [line for line in lines if line.startswith('!')]
+            # 提取规则（不以 ! 开头的行）
+            rules = [line for line in lines if not line.startswith('!')]
+            return prefix, rules
+    else:
+        print(f"本地规则文件 {filepath} 不存在，跳过加载。")
+        return [], []
 
 def merge_and_deduplicate_rules(rules_list):
     """合并并去重规则"""
@@ -57,6 +71,12 @@ def main():
                 if line.startswith('! Version:'):
                     prefix_info['Version'] = line.split(': ')[1]
             print(f"已下载规则：{url}，行数: {len(rules)}")
+
+        # 加载本地规则
+        local_prefix, local_rules = load_local_rules(LOCAL_RULE_FILE)
+        if local_rules:
+            rules_list.append(local_rules)
+            print(f"已加载本地规则：{LOCAL_RULE_FILE}，行数: {len(local_rules)}")
 
         # 合并并去重
         merged_rules = merge_and_deduplicate_rules(rules_list)
