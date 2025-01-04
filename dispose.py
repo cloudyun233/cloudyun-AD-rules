@@ -20,6 +20,8 @@ class RuleParser:
         self.total_rules = 0  # 总规则数量
         self.valid_domains = set()  # 存储有效的域名
         self.header_comments = []  # 存储开头的注释行
+        self.has_header_been_collected = False  # 标记是否已经收集过注释行
+        self.seen_comments = set()  # 用于存储已经出现过的注释行
 
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
@@ -49,14 +51,19 @@ class RuleParser:
         try:
             with open(self.input_file, "r", encoding="utf-8") as f:
                 for line in f:
-                    if line.startswith("!"):  # 保留开头的注释行
-                        self.header_comments.append(line.strip())
-                    self.total_rules += 1  # 统计总规则数量
-                    rule, domain = self.__parse_line(line)
-                    if rule is not None:  # 如果是有效规则
-                        self.valid_rules.append(rule)
-                        if domain:
-                            self.domain_set.add(domain)
+                    if line.startswith("!") and not self.has_header_been_collected:  # 只收集一次注释行
+                        stripped_line = line.strip()
+                        if stripped_line not in self.seen_comments:  # 去重逻辑
+                            self.header_comments.append(stripped_line)
+                            self.seen_comments.add(stripped_line)
+                    elif not line.startswith("!"):  # 非注释行
+                        self.has_header_been_collected = True  # 标记已收集注释行
+                        self.total_rules += 1  # 统计总规则数量
+                        rule, domain = self.__parse_line(line)
+                        if rule is not None:  # 如果是有效规则
+                            self.valid_rules.append(rule)
+                            if domain:
+                                self.domain_set.add(domain)
             logger.info(f"Parsed {len(self.valid_rules)} valid rules and {len(self.domain_set)} domains.")
         except Exception as e:
             logger.error(f"Error parsing rules: {e}")
@@ -114,7 +121,7 @@ class RuleParser:
         """过滤有效的规则"""
         try:
             # 国内和国外DNS服务器
-            china_nameservers = ["119.29.29.29", "223.6.6.6"]  # 国内DNS
+            china_nameservers = ["119.29.29.29", "223.6.6.6", "114.114.114.114", "180.76.76.76"]  # 国内DNS
             global_nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]  # 国外DNS
 
             # 解析域名
@@ -146,12 +153,17 @@ class RuleParser:
         """保存有效的规则到文件"""
         try:
             with open(self.output_file, "w", encoding="utf-8") as f:
-                # 更新注释行中的 Total lines
+                # 写入注释行
+                seen_titles = set()  # 用于记录已经写入的 Title 和 Total lines
                 for comment in self.header_comments:
                     if comment.startswith("! Title:"):
-                        f.write("! Title: cloudyun-AD-rules-check\n")  # 修改 Title
+                        if "! Title:" not in seen_titles:  # 确保只写入一次 Title
+                            f.write("! Title: cloudyun-AD-rules-check\n")
+                            seen_titles.add("! Title:")
                     elif comment.startswith("! Total lines:"):
-                        f.write(f"! Total lines: {len(rules)}\n")  # 更新 Total lines
+                        if "! Total lines:" not in seen_titles:  # 确保只写入一次 Total lines
+                            f.write(f"! Total lines: {len(rules)}\n")
+                            seen_titles.add("! Total lines:")
                     else:
                         f.write(comment + "\n")  # 其他注释行保持不变
                 # 写入过滤后的规则
