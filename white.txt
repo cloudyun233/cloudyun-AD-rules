@@ -1,1 +1,6 @@
-@@||pingjs.qq.com^
+@@||pingjs.qq.com^$important
+@@||guanjia.qq.com^$important
+@@||aegis.qq.com^$important
+@@||tdid.m.qq.com^$important
+@@||appchannel.html5.qq.com^$important
+@@||report.qcloudcdn.qq.com^$important
