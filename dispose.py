@@ -1,15 +1,9 @@
 import os
-import re  # 导入 re 模块
+import re
 import asyncio
-from loguru import logger  # 导入 logger
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
-import httpx
-import IPy
-from tld import get_tld
+from loguru import logger
 from dns.asyncresolver import Resolver as DNSResolver
 from dns.rdatatype import RdataType as DNSRdataType
-
 
 class RuleParser:
     def __init__(self, input_file, output_file):
@@ -26,7 +20,7 @@ class RuleParser:
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
         line = line.strip()
-        if not line or line.startswith("!") or line.startswith("#"):  # 忽略空行和注释
+        if not line or line.startswith("#"):  # 忽略空行和以 # 开头的注释
             return line, None
 
         # 处理正则表达式规则
@@ -55,34 +49,38 @@ class RuleParser:
 
     def parse_rules(self):
         """解析规则文件并提取域名"""
-        try:
-            with open(self.input_file, "r", encoding="utf-8") as f:
-                for line in f:
-                    if line.startswith("!") and not self.has_header_been_collected:  # 只收集一次注释行
-                        stripped_line = line.strip()
-                        if stripped_line not in self.seen_comments:  # 去重逻辑
-                            self.header_comments.append(stripped_line)
-                            self.seen_comments.add(stripped_line)
-                    elif not line.startswith("!"):  # 非注释行
-                        self.has_header_been_collected = True  # 标记已收集注释行
-                        self.total_rules += 1  # 统计总规则数量
-                        rule, domain = self.__parse_line(line)
-                        if rule is not None:  # 如果是有效规则
-                            self.valid_rules.append(rule)
-                            if domain:
-                                self.domain_set.add(domain)
-            logger.info(f"Parsed {len(self.valid_rules)} valid rules and {len(self.domain_set)} domains.")
-        except Exception as e:
-            logger.error(f"Error parsing rules: {e}")
+        with open(self.input_file, "r", encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("!") and not self.has_header_been_collected:  # 只收集一次注释行
+                    stripped_line = line.strip()
+                    if stripped_line not in self.seen_comments:  # 去重逻辑
+                        self.header_comments.append(stripped_line)
+                        self.seen_comments.add(stripped_line)
+                elif not line.startswith("!"):  # 非注释行
+                    self.has_header_been_collected = True  # 标记已收集注释行
+                    self.total_rules += 1  # 统计总规则数量
+                    rule, domain = self.__parse_line(line)
+                    if rule is not None:  # 如果是有效规则
+                        self.valid_rules.append(rule)
+                        if domain:
+                            self.domain_set.add(domain)
+        logger.info(f"Parsed {len(self.valid_rules)} valid rules and {len(self.domain_set)} domains.")
 
     async def __resolve(self, dnsresolver, domain):
-        """异步解析域名，获取IP地址"""
+        """异步解析域名，获取IP地址（支持 A 和 AAAA 记录）"""
         try:
-            query_object = await dnsresolver.resolve(qname=domain, rdtype="A")
-            for item in query_object.response.answer:
+            # 尝试解析 A 记录（IPv4）
+            query_object_a = await dnsresolver.resolve(qname=domain, rdtype="A")
+            for item in query_object_a.response.answer:
                 if item.rdtype == DNSRdataType.A:
                     return True  # 解析成功
-        except Exception as e:
+
+            # 尝试解析 AAAA 记录（IPv6）
+            query_object_aaaa = await dnsresolver.resolve(qname=domain, rdtype="AAAA")
+            for item in query_object_aaaa.response.answer:
+                if item.rdtype == DNSRdataType.AAAA:
+                    return True  # 解析成功
+        except Exception:
             pass  # 解析失败
         return False
 
@@ -99,7 +97,7 @@ class RuleParser:
         dnsresolver.nameservers = nameservers  # 设置DNS服务器
         dnsresolver.port = port
 
-        semaphore = asyncio.Semaphore(750)  # 限制并发量
+        semaphore = asyncio.Semaphore(500)  # 限制并发量为 500
 
         # 添加异步任务
         taskList = []
@@ -126,59 +124,52 @@ class RuleParser:
 
     def filter_valid_rules(self):
         """过滤有效的规则"""
-        try:
-            # 国内和国外DNS服务器
-            china_nameservers = ["119.29.29.29", "223.6.6.6", "114.114.114.114", "180.76.76.76"]  # 国内DNS
-            global_nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]  # 国外DNS
+        # 国内和国外DNS服务器
+        china_nameservers = ["119.29.29.29", "223.6.6.6", "114.114.114.114", "180.76.76.76"]  # 国内DNS
+        global_nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]  # 国外DNS
 
-            # 解析域名
-            loop = asyncio.get_event_loop()
-            valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, global_nameservers))
+        # 解析域名
+        loop = asyncio.get_event_loop()
+        valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, china_nameservers))
 
-            # 只解析未成功的域名
-            unresolved_domains = self.domain_set - valid_domains
-            if unresolved_domains:
-                logger.info(f"开始解析未成功的 {len(unresolved_domains)} 个域名...")
-                valid_domains.update(loop.run_until_complete(self.__test_domains(unresolved_domains, china_nameservers)))
+        # 只解析未成功的域名
+        unresolved_domains = self.domain_set - valid_domains
+        if unresolved_domains:
+            logger.info(f"开始解析未成功的 {len(unresolved_domains)} 个域名...")
+            valid_domains.update(loop.run_until_complete(self.__test_domains(unresolved_domains, global_nameservers)))
 
-            self.valid_domains = valid_domains
+        self.valid_domains = valid_domains
 
-            # 过滤有效规则
-            filtered_rules = []
-            for rule in self.valid_rules:
-                _, domain = self.__parse_line(rule)
-                if domain is None or domain in valid_domains:
-                    filtered_rules.append(rule)
+        # 过滤有效规则
+        filtered_rules = []
+        for rule in self.valid_rules:
+            _, domain = self.__parse_line(rule)
+            if domain is None or domain in valid_domains:  # 保留不需要域名解析的规则
+                filtered_rules.append(rule)
 
-            logger.info(f"Filtered {len(filtered_rules)} valid rules.")
-            return filtered_rules
-        except Exception as e:
-            logger.error(f"Error filtering rules: {e}")
-            return []
+        logger.info(f"Filtered {len(filtered_rules)} valid rules.")
+        return filtered_rules
 
     def save_rules(self, rules):
         """保存有效的规则到文件"""
-        try:
-            with open(self.output_file, "w", encoding="utf-8") as f:
-                # 写入注释行
-                seen_titles = set()  # 用于记录已经写入的 Title 和 Total lines
-                for comment in self.header_comments:
-                    if comment.startswith("! Title:"):
-                        if "! Title:" not in seen_titles:  # 确保只写入一次 Title
-                            f.write("! Title: cloudyun-AD-rules-check\n")
-                            seen_titles.add("! Title:")
-                    elif comment.startswith("! Total lines:"):
-                        if "! Total lines:" not in seen_titles:  # 确保只写入一次 Total lines
-                            f.write(f"! Total lines: {len(rules)}\n")
-                            seen_titles.add("! Total lines:")
-                    else:
-                        f.write(comment + "\n")  # 其他注释行保持不变
-                # 写入过滤后的规则
-                for line in rules:
-                    f.write(line + "\n")
-            logger.info(f"Saved {len(rules)} rules to {self.output_file}.")
-        except Exception as e:
-            logger.error(f"Error saving rules: {e}")
+        with open(self.output_file, "w", encoding="utf-8") as f:
+            # 写入注释行
+            seen_titles = set()  # 用于记录已经写入的 Title 和 Total lines
+            for comment in self.header_comments:
+                if comment.startswith("! Title:"):
+                    if "! Title:" not in seen_titles:  # 确保只写入一次 Title
+                        f.write("! Title: cloudyun-AD-rules-check\n")
+                        seen_titles.add("! Title:")
+                elif comment.startswith("! Total lines:"):
+                    if "! Total lines:" not in seen_titles:  # 确保只写入一次 Total lines
+                        f.write(f"! Total lines: {len(rules)}\n")
+                        seen_titles.add("! Total lines:")
+                else:
+                    f.write(comment + "\n")  # 其他注释行保持不变
+            # 写入过滤后的规则
+            for line in rules:
+                f.write(line + "\n")
+        logger.info(f"Saved {len(rules)} rules to {self.output_file}.")
 
     def print_statistics(self):
         """打印统计信息"""
