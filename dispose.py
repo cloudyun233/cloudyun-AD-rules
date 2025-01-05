@@ -37,6 +37,9 @@ class RuleParser:
         if line.startswith("@@||") and line.endswith("^"):  # 白名单规则
             domain = line[4:-1]  # 去掉 @@|| 和 ^
             return line, domain
+        elif line.startswith("@@||") and line.endswith("^$important"):  # 重要白名单规则
+            domain = line[4:-11]
+            return line, domain
         elif line.startswith("||") and line.endswith("^"):  # 黑名单规则
             domain = line[2:-1]  # 去掉 || 和 ^
             return line, domain

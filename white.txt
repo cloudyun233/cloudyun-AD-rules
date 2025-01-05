@@ -1,6 +1,15 @@
+<<<<<<< HEAD
 @@||pingjs.qq.com^$important
 @@||guanjia.qq.com^$important
 @@||aegis.qq.com^$important
 @@||tdid.m.qq.com^$important
 @@||appchannel.html5.qq.com^$important
 @@||report.qcloudcdn.qq.com^$important
+=======
+@@||pingjs.qq.com^
+@@||guanjia.qq.com^
+@@||aegis.qq.com^
+@@||tdid.m.qq.com^
+@@||appchannel.html5.qq.com^
+@@||report.qcloudcdn.qq.com^
+>>>>>>> a43d39b7f0e0aab2e728622035e5fcbd18e39603
