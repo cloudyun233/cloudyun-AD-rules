@@ -11,10 +11,10 @@ def download_rules(url):
     response = requests.get(url)
     if response.status_code == 200:
         lines = response.text.splitlines()
-        # 提取前缀信息（以 ! 开头的行）
-        prefix = [line for line in lines if line.startswith('!')]
-        # 提取规则（不以 ! 开头的行）
-        rules = [line for line in lines if not line.startswith('!')]
+        # 提取前缀信息（以 ! 和##开头的行）
+        prefix = [line for line in lines if line.startswith('!') or line.startswith('##')]
+        # 提取规则（不以 ! 和##开头的行）
+        rules = [line for line in lines if not line.startswith('!') and not line.startswith('##')]
         return prefix, rules
     else:
         raise Exception(f"Failed to download rules from {url}")
@@ -24,10 +24,10 @@ def load_local_rules(filepath):
     if os.path.exists(filepath):
         with open(filepath, 'r', encoding='utf-8') as file:
             lines = file.read().splitlines()
-            # 提取前缀信息（以 ! 开头的行）
-            prefix = [line for line in lines if line.startswith('!')]
-            # 提取规则（不以 ! 开头的行）
-            rules = [line for line in lines if not line.startswith('!')]
+            # 提取前缀信息
+            prefix = [line for line in lines if line.startswith('!') or line.startswith('##')]
+            # 提取规则
+            rules = [line for line in lines if not line.startswith('!') and not line.startswith('##')]
             return prefix, rules
     else:
         print(f"本地规则文件 {filepath} 不存在，跳过加载。")
