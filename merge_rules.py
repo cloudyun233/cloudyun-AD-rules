@@ -3,7 +3,7 @@
 
 import requests
 import os
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from config import SOURCE_URLS, OUTPUT_FILE, LOCAL_RULE_FILE  # 从 config.py 导入配置
 
 def download_rules(url):
@@ -40,12 +40,18 @@ def merge_and_deduplicate_rules(rules_list):
         combined_rules.update(rules)  # 使用集合去重
     return sorted(combined_rules)  # 返回排序后的规则列表
 
+def get_beijing_time():
+    """获取当前北京时间"""
+    utc_now = datetime.now(timezone.utc)  # 使用 timezone-aware 的 datetime 对象
+    beijing_time = utc_now.astimezone(timezone(timedelta(hours=8)))
+    return beijing_time.strftime('%Y-%m-%d %H:%M:%S')
+
 def save_rules_to_file(prefix, rules, filename):
     """将前缀信息和规则保存到文件"""
     with open(filename, 'w', encoding='utf-8') as file:
         # 写入自定义前缀信息
         file.write("! Title: cloudyun-AD-rules\n")
-        file.write(f"! Version: {prefix['Version']}\n")
+        file.write(f"! Version: {get_beijing_time()}\n")  # 使用当前北京时间作为版本号
         file.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
         file.write(f"! Total lines: {len(rules)}\n")
         # 写入规则
