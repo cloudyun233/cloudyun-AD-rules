@@ -33,6 +33,10 @@ class RuleParser:
         if line.startswith("/") and line.endswith("/"):
             return line, None  # 保留正则表达式规则
 
+        # 处理包含 * 的规则
+        if "*" in line:
+            return line, None  # 保留包含 * 的规则
+
         # 处理域名规则
         if line.startswith("@@||") and line.endswith("^"):  # 白名单规则
             domain = line[4:-1]  # 去掉 @@|| 和 ^
