@@ -130,21 +130,50 @@ class RuleParser:
 
         # 解析域名
         loop = asyncio.get_event_loop()
-        valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, china_nameservers))
+        china_valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, china_nameservers))
 
-        # 只解析未成功的域名
-        unresolved_domains = self.domain_set - valid_domains
+        # 生成 all-lite.txt 文件，仅包含国内 DNS 解析成功的域名
+        lite_rules = []
+        for rule in self.valid_rules:
+            _, domain = self.__parse_line(rule)
+            if domain is None or domain in china_valid_domains:  # 保留不需要域名解析的规则或国内 DNS 解析成功的域名
+                lite_rules.append(rule)
+
+        # 保存 all-lite.txt 文件
+        lite_output_file = "all-lite.txt"
+        with open(lite_output_file, "w", encoding="utf-8") as f:
+            # 写入注释行
+            seen_titles = set()  # 用于记录已经写入的 Title 和 Total lines
+            for comment in self.header_comments:
+                if comment.startswith("! Title:"):
+                    if "! Title:" not in seen_titles:  # 确保只写入一次 Title
+                        f.write("! Title: cloudyun-check-lite\n")
+                        seen_titles.add("! Title:")
+                elif comment.startswith("! Total lines:"):
+                    if "! Total lines:" not in seen_titles:  # 确保只写入一次 Total lines
+                        f.write(f"! Total lines: {len(lite_rules)}\n")
+                        seen_titles.add("! Total lines:")
+                else:
+                    f.write(comment + "\n")  # 其他注释行保持不变
+            # 写入过滤后的规则
+            for line in lite_rules:
+                f.write(line + "\n")
+        logger.info(f"Saved {len(lite_rules)} rules to {lite_output_file}.")
+
+        # 继续生成 all.txt 文件
+        unresolved_domains = self.domain_set - china_valid_domains
         if unresolved_domains:
             logger.info(f"开始解析未成功的 {len(unresolved_domains)} 个域名...")
-            valid_domains.update(loop.run_until_complete(self.__test_domains(unresolved_domains, global_nameservers)))
+            global_valid_domains = loop.run_until_complete(self.__test_domains(unresolved_domains, global_nameservers))
+            china_valid_domains.update(global_valid_domains)
 
-        self.valid_domains = valid_domains
+        self.valid_domains = china_valid_domains
 
         # 过滤有效规则
         filtered_rules = []
         for rule in self.valid_rules:
             _, domain = self.__parse_line(rule)
-            if domain is None or domain in valid_domains:  # 保留不需要域名解析的规则
+            if domain is None or domain in china_valid_domains:  # 保留不需要域名解析的规则
                 filtered_rules.append(rule)
 
         logger.info(f"Filtered {len(filtered_rules)} valid rules.")
