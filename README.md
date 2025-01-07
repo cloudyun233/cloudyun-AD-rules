@@ -9,6 +9,7 @@
 
 - **合并去重后的规则**：[beforeall.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/beforeall.txt)
 - **检测后的有效规则**（可能有检测错误）：[all.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all.txt)
+- **精简版有效规则**（仅国内 DNS 解析成功）：[all-lite.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all-lite.txt)
 
 ## 上游规则简介 📚
 
@@ -36,7 +37,7 @@
 
 ## 检测和域名处理说明 🔍
 
-在生成最终的广告过滤规则文件 `all.txt` 之前，仓库中的规则会经过以下处理步骤：
+在生成最终的广告过滤规则文件 `all.txt` 和 `all-lite.txt` 之前，仓库中的规则会经过以下处理步骤：
 
 1. **规则合并与去重**：
    - 从多个上游规则源下载规则文件，合并所有规则并去除重复项，生成 `beforeall.txt` 文件。
@@ -50,15 +51,16 @@
 
 4. **生成最终规则文件**：
    - 将有效的规则保存到 `all.txt` 文件中，并更新 `! Total lines:` 为有效规则的总数。
+   - 生成 `all-lite.txt` 文件，仅包含通过国内 DNS 解析成功的域名，适用于对规则大小有严格限制的场景。
 
-通过以上步骤，确保生成的广告过滤规则文件 `all.txt` 中的规则都是语法正确且域名有效的。
+通过以上步骤，确保生成的广告过滤规则文件 `all.txt` 和 `all-lite.txt` 中的规则都是语法正确且域名有效的。
 
 ## 自动化流程 ⚙️
 
 本仓库使用 GitHub Actions 自动化流程来定期更新规则。具体流程如下：
 
 1. **定时任务**：
-   - 每天 UTC 时间 20:00 自动运行，合并规则并生成新的 `beforeall.txt` 和 `all.txt` 文件。
+   - 每天 UTC 时间 20:00 自动运行，合并规则并生成新的 `beforeall.txt`、`all.txt` 和 `all-lite.txt` 文件。
 
 2. **手动触发**：
    - 支持通过 GitHub Actions 手动触发流程，方便随时更新规则。
@@ -68,10 +70,10 @@
 
 4. **规则处理**：
    - 运行 `merge_rules.py` 脚本，下载并合并上游规则，生成 `beforeall.txt`。
-   - 运行 `dispose.py` 脚本，对 `beforeall.txt` 中的规则进行语法检查和域名有效性检测，生成最终的 `all.txt`。
+   - 运行 `dispose.py` 脚本，对 `beforeall.txt` 中的规则进行语法检查和域名有效性检测，生成最终的 `all.txt` 和 `all-lite.txt`。
 
 5. **文件提交**：
-   - 将生成的 `beforeall.txt` 和 `all.txt` 文件提交到 GitHub 仓库，并推送到 `main` 分支。
+   - 将生成的 `beforeall.txt`、`all.txt` 和 `all-lite.txt` 文件提交到 GitHub 仓库，并推送到 `main` 分支。
 
 ## 关于 GitHub 的使用和代码编写 💻
 
