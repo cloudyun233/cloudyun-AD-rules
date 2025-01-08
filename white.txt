@@ -7,5 +7,5 @@
 @@||cm.bilibili.com^$important
 @@||otheve.beacon.qq.com^$important
 @@||h.trace.qq.com^$important
-
+@@||updatem.360safe.com^$important
 
