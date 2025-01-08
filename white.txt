@@ -5,3 +5,7 @@
 @@||appchannel.html5.qq.com^$important
 @@||report.qcloudcdn.qq.com^$important
 @@||cm.bilibili.com^$important
+@@||otheve.beacon.qq.com^$important
+@@||h.trace.qq.com^$important
+@@||punch.p2p.qq.com^$important
+
