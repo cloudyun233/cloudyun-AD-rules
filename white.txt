@@ -7,4 +7,4 @@
 @@||cm.bilibili.com^$important
 @@||otheve.beacon.qq.com^$important
 @@||updatem.360safe.com^$important
-
+@@||repository.certum.pl^$important
