@@ -14,7 +14,7 @@ def download_rules(url):
         # 提取前缀信息（以 ! 开头的行）
         prefix = [line for line in lines if line.startswith('!')]
         # 提取规则（不以 ! 和##开头的行）
-        rules = [line for line in lines if not line.startswith('!') and not line.startswith('##')]
+        rules = [line for line in lines if not line.startswith('!') and not line.startswith('#')]
         return prefix, rules
     else:
         raise Exception(f"Failed to download rules from {url}")
