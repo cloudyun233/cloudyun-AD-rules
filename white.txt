@@ -8,3 +8,7 @@
 @@||otheve.beacon.qq.com^$important
 @@||updatem.360safe.com^$important
 @@||repository.certum.pl^$important
+@@||dl.onethingpcs.com^$important
+@@||app-dl.onethingpcs.com^$important
+@@||images1-mall.onethingpcs.com^$important
+@@||device-box.onethingpcs.com^$important
