@@ -23,15 +23,11 @@
    - **特点**：中文区命中率最高的广告过滤列表，支持多种网络组件。  
    - **优势**：精准屏蔽广告和隐私追踪，兼容 AdGuardHome、dnsmasq 等工具。
 
-3. **[8680/GOODBYEADS](https://github.com/8680/GOODBYEADS)**  
-   - **特点**：适用于 AdGuard 和 Qx 的去广告规则。  
-   - **优势**：整合优质上游规则，去重整理后提供简洁高效的过滤列表。
-
-4. **[afwfv/DD-AD](https://github.com/afwfv/DD-AD)**  (仅使用私有维护规则)
+3. **[afwfv/DD-AD](https://github.com/afwfv/DD-AD)**  (仅使用私有维护规则)
    - **特点**：广告过滤规则整合项目，特别针对小说广告优化。  
    - **优势**：提供多种规则格式，支持番茄小说、七猫小说等平台的广告屏蔽。
 
-5. **[hagezi/dns-blocklists](https://github.com/hagezi/dns-blocklists)**  
+4. **[hagezi/dns-blocklists](https://github.com/hagezi/dns-blocklists)**  
    - **特点**：专注于 DNS 层面的广告、恶意软件和跟踪保护。  
    - **优势**：提供多种过滤列表，涵盖广告、隐私保护和安全性需求。
 
