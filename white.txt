@@ -12,3 +12,5 @@
 @@||app-dl.onethingpcs.com^$important
 @@||images1-mall.onethingpcs.com^$important
 @@||device-box.onethingpcs.com^$important
+@@||s.click.taobao.com^$important
+
