@@ -4,7 +4,6 @@
 # 源 URL 列表
 SOURCE_URLS = [
     "https://raw.githubusercontent.com/217heidai/adblockfilters/main/rules/adblockdns.txt",
-    "https://raw.githubusercontent.com/afwfv/DD-AD/main/rule/DD-AD.txt",
     "https://anti-ad.net/easylist.txt",
     "https://raw.githubusercontent.com/hagezi/dns-blocklists/main/adblock/pro.txt",
     "https://adguardteam.github.io/HostlistsRegistry/assets/filter_3.txt",
