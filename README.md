@@ -23,15 +23,7 @@
    - **特点**：中文区命中率最高的广告过滤列表，支持多种网络组件。  
    - **优势**：精准屏蔽广告和隐私追踪，兼容 AdGuardHome、dnsmasq 等工具。
 
-3. **[someone who cares](https://someonewhocares.org/)**  
-   - **特点**：提供长期维护的广告过滤规则，覆盖广泛的广告服务器和跟踪器。  
-   - **优势**：规则更新及时，兼容多种广告拦截工具，适合全球用户使用。
-
-4. **[pgl.yoyo.org/adservers](https://pgl.yoyo.org/adservers/)**  
-   - **特点**：知名的广告服务器列表，提供 hosts 格式的规则文件。  
-   - **优势**：简单易用，可直接导入到 hosts 文件或 DNS 过滤工具中，有效屏蔽广告和恶意网站。
-
-5. **[hagezi/dns-blocklists](https://github.com/hagezi/dns-blocklists)**  
+3. **[hagezi/dns-blocklists](https://github.com/hagezi/dns-blocklists)**  
    - **特点**：专注于 DNS 层面的广告、恶意软件和跟踪保护。  
    - **优势**：提供多种过滤列表，涵盖广告、隐私保护和安全性需求。
 
