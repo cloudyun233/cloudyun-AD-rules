@@ -7,9 +7,15 @@
 **订阅链接**：  
 📥 一键订阅规则：  
 
+### AdGuardHome 格式规则
 - **合并去重后的规则**：[beforeall.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/beforeall.txt)
 - **检测后的有效规则**（可能有检测错误）：[all.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all.txt)
 - **精简版有效规则**（仅国内 DNS 解析成功）：[all-lite.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all-lite.txt)
+
+### Dnsmasq 格式规则
+- **合并去重后的规则**：[beforeall_dnsmasq.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/beforeall_dnsmasq.txt)
+- **检测后的有效规则**（可能有检测错误）：[all-dnsmasq.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all-dnsmasq.txt)
+- **精简版有效规则**（仅国内 DNS 解析成功）：[all-lite-dnsmasq.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all-lite-dnsmasq.txt)
 
 ## 上游规则简介 📚
 
@@ -61,6 +67,8 @@
 4. **规则处理**：  
    - 运行 `merge_rules.py` 脚本，下载并合并上游规则，生成 `beforeall.txt`。  
    - 运行 `dispose.py` 脚本，对 `beforeall.txt` 中的规则进行语法检查和域名有效性检测，生成最终的 `all.txt` 和 `all-lite.txt`。
+   - 运行 `merge_rules_dnsmasq.py` 脚本，下载并合并dnsmasq格式的上游规则，生成 `beforeall_dnsmasq.txt`。
+   - 运行 `dispose_dnsmasq.py` 脚本，对 `beforeall_dnsmasq.txt` 中的规则进行语法检查和域名有效性检测，生成最终的 `all-dnsmasq.txt` 和 `all-lite-dnsmasq.txt`。
 
 5. **文件提交**：  
    - 将生成的 `beforeall.txt`、`all.txt` 和 `all-lite.txt` 文件提交到 GitHub 仓库，并推送到 `main` 分支。
