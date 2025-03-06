@@ -1,9 +1,12 @@
 import os
 import re
 import asyncio
+import time
+from collections import defaultdict
 from loguru import logger
 from dns.asyncresolver import Resolver as DNSResolver
 from dns.rdatatype import RdataType as DNSRdataType
+from dns.exception import DNSException
 
 class RuleParser:
     def __init__(self, input_file, output_file):
@@ -11,11 +14,15 @@ class RuleParser:
         self.output_file = output_file
         self.valid_rules = []  # 存储有效的规则
         self.domain_set = set()  # 存储提取的域名
+        self.domain_to_rules = defaultdict(list)  # 存储域名到规则的映射
+        self.parent_domains = set()  # 存储父域名
+        self.domain_hierarchy = defaultdict(set)  # 存储域名层级关系
         self.total_rules = 0  # 总规则数量
         self.valid_domains = set()  # 存储有效的域名
         self.header_comments = []  # 存储开头的注释行
         self.has_header_been_collected = False  # 标记是否已经收集过注释行
         self.seen_comments = set()  # 用于存储已经出现过的注释行
+        self.dns_cache = {}  # DNS查询结果缓存
 
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
@@ -64,24 +71,64 @@ class RuleParser:
                         self.valid_rules.append(rule)
                         if domain:
                             self.domain_set.add(domain)
+                            self.domain_to_rules[domain].append(rule)
+        
+        # 分析域名层级关系
+        self.__analyze_domain_hierarchy()
+        
         logger.info(f"Parsed {len(self.valid_rules)} valid rules and {len(self.domain_set)} domains.")
+        logger.info(f"Identified {len(self.parent_domains)} parent domains for DNS resolution.")
+    
+    def __analyze_domain_hierarchy(self):
+        """分析域名层级关系，识别父域名和子域名"""
+        # 构建域名层级关系
+        for domain in self.domain_set:
+            parts = domain.split('.')
+            # 从二级域名开始构建父域名
+            if len(parts) >= 2:
+                parent = '.'.join(parts[-2:])
+                self.parent_domains.add(parent)
+                self.domain_hierarchy[parent].add(domain)
+                
+                # 对于更长的域名，继续构建中间层级
+                for i in range(3, min(len(parts) + 1, 5)):  # 限制层级深度，避免过度分析
+                    mid_domain = '.'.join(parts[-i:])
+                    self.domain_hierarchy[parent].add(mid_domain)
+            else:
+                # 对于顶级域名，直接添加到父域名集合
+                self.parent_domains.add(domain)
 
     async def __resolve(self, dnsresolver, domain):
         """异步解析域名，获取IP地址（支持 A 和 AAAA 记录）"""
+        # 检查缓存
+        if domain in self.dns_cache:
+            return self.dns_cache[domain]
+            
         try:
             # 尝试解析 A 记录（IPv4）
-            query_object_a = await dnsresolver.resolve(qname=domain, rdtype="A")
-            for item in query_object_a.response.answer:
-                if item.rdtype == DNSRdataType.A:
-                    return True  # 解析成功
+            try:
+                query_object_a = await dnsresolver.resolve(qname=domain, rdtype="A")
+                for item in query_object_a.response.answer:
+                    if item.rdtype == DNSRdataType.A:
+                        self.dns_cache[domain] = True
+                        return True  # 解析成功
+            except DNSException:
+                pass  # 继续尝试AAAA记录
 
             # 尝试解析 AAAA 记录（IPv6）
-            query_object_aaaa = await dnsresolver.resolve(qname=domain, rdtype="AAAA")
-            for item in query_object_aaaa.response.answer:
-                if item.rdtype == DNSRdataType.AAAA:
-                    return True  # 解析成功
-        except Exception:
-            pass  # 解析失败
+            try:
+                query_object_aaaa = await dnsresolver.resolve(qname=domain, rdtype="AAAA")
+                for item in query_object_aaaa.response.answer:
+                    if item.rdtype == DNSRdataType.AAAA:
+                        self.dns_cache[domain] = True
+                        return True  # 解析成功
+            except DNSException:
+                pass
+                
+        except Exception as e:
+            logger.debug(f"解析域名 {domain} 时出错: {str(e)}")
+            
+        self.dns_cache[domain] = False
         return False
 
     async def __pingx(self, dnsresolver, domain, semaphore):
@@ -90,14 +137,21 @@ class RuleParser:
             is_valid = await self.__resolve(dnsresolver, domain)
             return domain, is_valid
 
-    async def __test_domains(self, domainList, nameservers, port=53):
+    async def __test_domains(self, domainList, nameservers, port=53, max_concurrency=500):
         """测试域名列表中的域名，获取其IP地址"""
-        logger.info("Resolving domains...")
+        start_time = time.time()
+        logger.info(f"开始解析 {len(domainList)} 个域名...")
+        
+        # 创建DNS解析器
         dnsresolver = DNSResolver()
         dnsresolver.nameservers = nameservers  # 设置DNS服务器
         dnsresolver.port = port
+        dnsresolver.lifetime = 3.0  # 设置超时时间，避免单个查询阻塞太久
 
-        semaphore = asyncio.Semaphore(500)  # 限制并发量为 500
+        # 动态调整并发量，根据域名数量设置合理的并发数
+        concurrency = min(max_concurrency, len(domainList))
+        semaphore = asyncio.Semaphore(concurrency)
+        logger.info(f"设置DNS查询并发数为: {concurrency}")
 
         # 添加异步任务
         taskList = []
@@ -109,17 +163,32 @@ class RuleParser:
         # 监控任务完成进度
         valid_domains = set()
         completed_count = 0
+        progress_interval = max(1, min(5000, total_domains // 10))  # 动态调整进度报告间隔
+        
         for future in asyncio.as_completed(taskList):
-            domain, is_valid = await future
-            completed_count += 1
+            try:
+                domain, is_valid = await future
+                completed_count += 1
 
-            if is_valid:
-                valid_domains.add(domain)
+                if is_valid:
+                    valid_domains.add(domain)
+                    # 如果是父域名解析成功，将其所有子域名也标记为有效
+                    if domain in self.domain_hierarchy:
+                        for child_domain in self.domain_hierarchy[domain]:
+                            valid_domains.add(child_domain)
 
-            # 每完成 5000 个任务，输出一次进度
-            if completed_count % 5000 == 0 or completed_count == total_domains:
-                logger.info(f"已解析 {completed_count}/{total_domains} 个域名（{completed_count / total_domains * 100:.2f}%）")
+                # 动态报告进度
+                if completed_count % progress_interval == 0 or completed_count == total_domains:
+                    elapsed = time.time() - start_time
+                    rate = completed_count / elapsed if elapsed > 0 else 0
+                    remaining = (total_domains - completed_count) / rate if rate > 0 else 0
+                    logger.info(f"已解析 {completed_count}/{total_domains} 个域名 ({completed_count/total_domains*100:.2f}%) - 速率: {rate:.1f}域名/秒, 预计剩余时间: {remaining/60:.1f}分钟")
+            except Exception as e:
+                logger.error(f"处理域名解析结果时出错: {str(e)}")
+                completed_count += 1
 
+        elapsed = time.time() - start_time
+        logger.info(f"域名解析完成，耗时 {elapsed:.2f} 秒，有效域名数量: {len(valid_domains)}")
         return valid_domains
 
     def filter_valid_rules(self):
@@ -128,9 +197,10 @@ class RuleParser:
         china_nameservers = ["119.29.29.29", "223.6.6.6", "180.184.1.1", "114.114.114.114", "1.2.4.8"]  # 国内DNS
         global_nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]  # 国外DNS
 
-        # 解析域名
+        # 解析域名 - 只解析父域名而不是所有域名
         loop = asyncio.get_event_loop()
-        china_valid_domains = loop.run_until_complete(self.__test_domains(self.domain_set, china_nameservers))
+        logger.info(f"使用父域名策略，将解析 {len(self.parent_domains)} 个域名而不是 {len(self.domain_set)} 个域名")
+        china_valid_domains = loop.run_until_complete(self.__test_domains(self.parent_domains, china_nameservers))
 
         # 生成 all-lite.txt 文件，仅包含国内 DNS 解析成功的域名
         lite_rules = []
@@ -161,9 +231,9 @@ class RuleParser:
         logger.info(f"Saved {len(lite_rules)} rules to {lite_output_file}.")
 
         # 继续生成 all.txt 文件
-        unresolved_domains = self.domain_set - china_valid_domains
+        unresolved_domains = self.parent_domains - china_valid_domains
         if unresolved_domains:
-            logger.info(f"开始解析未成功的 {len(unresolved_domains)} 个域名...")
+            logger.info(f"开始使用国外DNS解析未成功的 {len(unresolved_domains)} 个父域名...")
             global_valid_domains = loop.run_until_complete(self.__test_domains(unresolved_domains, global_nameservers))
             china_valid_domains.update(global_valid_domains)
 
