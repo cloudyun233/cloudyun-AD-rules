@@ -100,9 +100,10 @@ class RuleParser:
 
     async def __resolve(self, dnsresolver, domain):
         """异步解析域名，获取IP地址（支持 A 和 AAAA 记录）"""
-        # 检查缓存
-        if domain in self.dns_cache:
-            return self.dns_cache[domain]
+        # 检查缓存，但只有当缓存结果为True时才使用缓存
+        # 这样可以确保解析失败的域名在不同DNS服务器间能重新尝试解析
+        if domain in self.dns_cache and self.dns_cache[domain] is True:
+            return True
             
         try:
             # 尝试解析 A 记录（IPv4）
@@ -128,7 +129,7 @@ class RuleParser:
         except Exception as e:
             logger.debug(f"解析域名 {domain} 时出错: {str(e)}")
             
-        self.dns_cache[domain] = False
+        # 不再缓存失败结果，让每个DNS服务器都有机会尝试解析
         return False
 
     async def __pingx(self, dnsresolver, domain, semaphore):
