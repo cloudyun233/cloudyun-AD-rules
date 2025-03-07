@@ -1,9 +1,0 @@
-# 本地dnsmasq白名单规则
-# 可以在此添加自定义的dnsmasq格式规则
-
-local=/qq.com/
-local=/bilibili.com/
-local=/360safe.com/
-local=/certum.pl/
-local=/onethingpcs.com/
-local=/taobao.com/
