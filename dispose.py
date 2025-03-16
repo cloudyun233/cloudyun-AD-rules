@@ -24,7 +24,7 @@ class RuleParser:
             return line, None
 
         # 处理正则表达式规则
-        if line.startswith("/") and line.endswith("/"):
+        if line.startswith("/"):
             return line, None  # 保留正则表达式规则
 
         # 处理包含 * 的规则
@@ -125,7 +125,7 @@ class RuleParser:
     def filter_valid_rules(self):
         """过滤有效的规则"""
         # 国内和国外DNS服务器
-        china_nameservers = ["119.29.29.29", "223.6.6.6", "180.184.1.1", "114.114.114.114", "1.2.4.8"]  # 国内DNS
+        china_nameservers = ["119.29.29.29", "223.6.6.6", "180.184.1.1"]  # 国内DNS
         global_nameservers = ["1.1.1.1", "8.8.8.8", "9.9.9.9"]  # 国外DNS
 
         # 解析域名
