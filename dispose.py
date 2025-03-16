@@ -1,3 +1,5 @@
+# dispose.py 用于进一步检测规则文件，并输出有效规则和有效域名。
+
 import os
 import re
 import asyncio
