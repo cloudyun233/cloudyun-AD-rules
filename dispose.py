@@ -20,7 +20,7 @@ class RuleParser:
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
         line = line.strip()
-        if not line or line.startswith("!"):  # 忽略空行和以 # 开头的注释
+        if not line or line.startswith("!"):  # 忽略空行和以 ! 开头的注释
             return line, None
 
         # 处理正则表达式规则
@@ -28,19 +28,23 @@ class RuleParser:
             return line, None  # 保留正则表达式规则
 
         # 处理域名规则
-        if line.startswith("@@||") and line.endswith("^"):  # 白名单规则
-            domain = line[4:-1]  # 去掉 @@|| 和 ^
-            return line, domain
-        elif line.startswith("@@||") and line.endswith("^$important"):  # 重要白名单规则
-            domain = line[4:-11]
-            return line, domain
-        elif line.startswith("||") and line.endswith("^"):  # 黑名单规则
-            domain = line[2:-1]  # 去掉 || 和 ^
-            return line, domain
-        elif re.match(r"^\S+\s+\S+$", line):  # 简单域名规则（假设格式为 IP 地址 + 域名）
-            parts = line.split(None, 1)
-            domain = parts[1]
-            return line, domain
+        if line.startswith("@@||"):  # 白名单规则
+            if line.endswith("^"):  # 标准白名单规则
+                domain = line[4:-1]  # 去掉 @@|| 和 ^
+                return line, domain
+            elif line.endswith("^$important"):  # 重要白名单规则
+                domain = line[4:-11]  # 去掉 @@|| 和 ^$important
+                return line, domain
+            else:  # 不带选项且不以^结尾的白名单规则
+                domain = line[4:]  # 只去掉 @@||
+                return line, domain
+        elif line.startswith("||"):  # 黑名单规则
+            if line.endswith("^"):  # 标准黑名单规则
+                domain = line[2:-1]  # 去掉 || 和 ^
+                return line, domain
+            else:  # 不带选项且不以^结尾的黑名单规则
+                domain = line[2:]  # 只去掉 ||
+                return line, domain
         return None, None  # 无效规则
 
     def parse_rules(self):
