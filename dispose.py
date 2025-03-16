@@ -20,16 +20,12 @@ class RuleParser:
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
         line = line.strip()
-        if not line or line.startswith("#"):  # 忽略空行和以 # 开头的注释
+        if not line or line.startswith("!"):  # 忽略空行和以 # 开头的注释
             return line, None
 
         # 处理正则表达式规则
         if line.startswith("/"):
             return line, None  # 保留正则表达式规则
-
-        # 处理包含 * 的规则
-        if "*" in line:
-            return line, None  # 保留包含 * 的规则
 
         # 处理域名规则
         if line.startswith("@@||") and line.endswith("^"):  # 白名单规则
