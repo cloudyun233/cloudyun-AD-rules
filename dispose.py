@@ -4,6 +4,7 @@ import asyncio
 from loguru import logger
 from dns.asyncresolver import Resolver as DNSResolver
 from dns.rdatatype import RdataType as DNSRdataType
+from datetime import datetime, timezone, timedelta
 
 class RuleParser:
     def __init__(self, input_file, output_file):
@@ -142,19 +143,20 @@ class RuleParser:
         # 保存 all-lite.txt 文件
         lite_output_file = "all-lite.txt"
         with open(lite_output_file, "w", encoding="utf-8") as f:
-            # 写入注释行
-            seen_titles = set()  # 用于记录已经写入的 Title 和 Total lines
+            # 写入自定义前缀信息
+            f.write("! Title: cloudyun-AD-rules-check-lite\n")
+            f.write(f"! Version: {self.get_beijing_time()}\n")  # 使用当前北京时间作为版本号
+            f.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
+            f.write(f"! Total lines: {len(lite_rules) - 1}\n")
+            
+            # 写入其他注释行（排除已写入的标准注释）
             for comment in self.header_comments:
-                if comment.startswith("! Title:"):
-                    if "! Title:" not in seen_titles:  # 确保只写入一次 Title
-                        f.write("! Title: cloudyun-check-lite\n")
-                        seen_titles.add("! Title:")
-                elif comment.startswith("! Total lines:"):
-                    if "! Total lines:" not in seen_titles:  # 确保只写入一次 Total lines
-                        f.write(f"! Total lines: {len(lite_rules)}\n")
-                        seen_titles.add("! Total lines:")
-                else:
-                    f.write(comment + "\n")  # 其他注释行保持不变
+                if not (comment.startswith("! Title:") or 
+                        comment.startswith("! Version:") or 
+                        comment.startswith("! Homepage:") or 
+                        comment.startswith("! Total lines:")):
+                    f.write(comment + "\n")
+                    
             # 写入过滤后的规则
             for line in lite_rules:
                 f.write(line + "\n")
@@ -182,24 +184,31 @@ class RuleParser:
     def save_rules(self, rules):
         """保存有效的规则到文件"""
         with open(self.output_file, "w", encoding="utf-8") as f:
-            # 写入注释行
-            seen_titles = set()  # 用于记录已经写入的 Title 和 Total lines
+            # 写入自定义前缀信息
+            f.write("! Title: cloudyun-AD-rules-check\n")
+            f.write(f"! Version: {self.get_beijing_time()}\n")  # 使用当前北京时间作为版本号
+            f.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
+            f.write(f"! Total lines: {len(rules) - 1}\n")
+            
+            # 写入其他注释行（排除已写入的标准注释）
             for comment in self.header_comments:
-                if comment.startswith("! Title:"):
-                    if "! Title:" not in seen_titles:  # 确保只写入一次 Title
-                        f.write("! Title: cloudyun-AD-rules-check\n")
-                        seen_titles.add("! Title:")
-                elif comment.startswith("! Total lines:"):
-                    if "! Total lines:" not in seen_titles:  # 确保只写入一次 Total lines
-                        f.write(f"! Total lines: {len(rules)}\n")
-                        seen_titles.add("! Total lines:")
-                else:
-                    f.write(comment + "\n")  # 其他注释行保持不变
+                if not (comment.startswith("! Title:") or 
+                        comment.startswith("! Version:") or 
+                        comment.startswith("! Homepage:") or 
+                        comment.startswith("! Total lines:")):
+                    f.write(comment + "\n")
+                    
             # 写入过滤后的规则
             for line in rules:
                 f.write(line + "\n")
         logger.info(f"Saved {len(rules)} rules to {self.output_file}.")
 
+    def get_beijing_time(self):
+        """获取当前北京时间"""
+        utc_now = datetime.now(timezone.utc)  # 使用 timezone-aware 的 datetime 对象
+        beijing_time = utc_now.astimezone(timezone(timedelta(hours=8)))
+        return beijing_time.strftime('%Y-%m-%d %H:%M:%S')
+        
     def print_statistics(self):
         """打印统计信息"""
         print(f"检测规则数量: {self.total_rules}")
