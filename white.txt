@@ -13,4 +13,4 @@
 @@||images1-mall.onethingpcs.com^$important
 @@||device-box.onethingpcs.com^$important
 @@||s.click.taobao.com^$important
-
+@@||c.bing.com^$important
