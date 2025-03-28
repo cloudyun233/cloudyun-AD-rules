@@ -13,3 +13,4 @@
 @@||images1-mall.onethingpcs.com^$important
 @@||device-box.onethingpcs.com^$important
 @@||s.click.taobao.com^$important
+@@||hkrpg-log-upload.mihoyo.com^$important
