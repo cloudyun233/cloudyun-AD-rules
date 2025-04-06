@@ -65,7 +65,7 @@ def save_rules_to_file(rules, filename):
         file.write("! Title: cloudyun-AD-rules\n")
         file.write(f"! Version: {get_beijing_time()}\n")  # 使用当前北京时间作为版本号
         file.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
-        file.write(f"! Total lines: {len(rules) - 1}\n")
+        file.write(f"! Total lines: {len(rules)}\n")
         # 写入规则
         for rule in rules:
             file.write(rule + '\n')

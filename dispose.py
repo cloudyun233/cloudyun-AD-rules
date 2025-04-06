@@ -149,7 +149,7 @@ class RuleParser:
             f.write("! Title: cloudyun-AD-rules-check-lite\n")
             f.write(f"! Version: {self.get_beijing_time()}\n")  # 使用当前北京时间作为版本号
             f.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
-            f.write(f"! Total lines: {len(lite_rules) - 1}\n")
+            f.write(f"! Total lines: {len(lite_rules)}\n")
             
             # 写入其他注释行（排除已写入的标准注释）
             for comment in self.header_comments:
@@ -190,7 +190,7 @@ class RuleParser:
             f.write("! Title: cloudyun-AD-rules-check\n")
             f.write(f"! Version: {self.get_beijing_time()}\n")  # 使用当前北京时间作为版本号
             f.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
-            f.write(f"! Total lines: {len(rules) - 1}\n")
+            f.write(f"! Total lines: {len(rules)}\n")
             
             # 写入其他注释行（排除已写入的标准注释）
             for comment in self.header_comments:
