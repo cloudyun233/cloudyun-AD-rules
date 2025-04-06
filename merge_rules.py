@@ -11,7 +11,7 @@ def download_rules(url):
     response = requests.get(url)
     if response.status_code == 200:
         lines = response.text.splitlines()
-        # 提取规则（不以 ! 和##开头的行）
+        # 提取规则（不以 ! 和#开头的行）
         rules = []
         for line in lines:
             if not line.startswith('!') and not line.startswith('#'):
@@ -33,7 +33,7 @@ def load_local_rules(filepath):
             # 提取规则
             rules = []
             for line in lines:
-                if not line.startswith('!') and not line.startswith('##'):
+                if not line.startswith('!') and not line.startswith('#'):
                     # 转换 0.0.0.0 或 127.0.0.1 开头的规则为 AdGuard 格式
                     if line.startswith('0.0.0.0 ') or line.startswith('127.0.0.1 '):
                         domain = line.split(' ', 1)[1].strip()
