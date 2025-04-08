@@ -13,3 +13,18 @@
 2025-04-08 18:43:50.828 | INFO     | __main__:filter_valid_rules:275 - Saved 33 rules to all-cn.txt.
 2025-04-08 18:43:50.829 | INFO     | __main__:<module>:362 - Saved 45 rules to all.txt.
 2025-04-08 18:43:50.830 | INFO     | __main__:<module>:366 - Script finished.
+2025-04-08 18:51:43.401 | INFO     | __main__:<module>:341 - 脚本开始运行。
+2025-04-08 18:51:43.402 | INFO     | __main__:parse_rules:74 - 解析完成，共找到46条有效规则和13个唯一域名。
+2025-04-08 18:51:43.403 | INFO     | __main__:__test_domains:121 - 正在使用DNS服务器 ['119.29.29.29', '223.6.6.6', '180.184.1.1'] 解析域名...
+2025-04-08 18:51:43.414 | INFO     | __main__:__test_domains:153 - 已完成 13/13 个域名解析(100.00%)，使用DNS服务器: ['119.29.29.29', '223.6.6.6', '180.184.1.1']
+2025-04-08 18:51:43.414 | INFO     | __main__:__test_domains:155 - 解析完成，共找到13个有效域名和13个唯一IPv4地址，使用DNS服务器: ['119.29.29.29', '223.6.6.6', '180.184.1.1']。
+2025-04-08 18:51:43.416 | INFO     | __main__:filter_valid_rules:181 - 已保存46条规则到文件 all-lite.txt。
+2025-04-08 18:51:43.416 | INFO     | __main__:filter_valid_rules:194 - 中国DNS检查后没有未解析的域名。
+2025-04-08 18:51:43.417 | INFO     | __main__:filter_valid_rules:204 - 唯一有效域名总数(中国+全球DNS): 13
+2025-04-08 18:51:43.417 | INFO     | __main__:filter_valid_rules:205 - 发现的唯一IPv4地址总数: 13
+2025-04-08 18:51:43.417 | INFO     | __main__:filter_valid_rules:214 - 已筛选46条规则用于all.txt文件。
+2025-04-08 18:51:43.417 | INFO     | __main__:filter_valid_rules:219 - 开始对关联域名进行GeoIP查询...
+2025-04-08 18:51:43.418 | INFO     | __main__:filter_valid_rules:251 - GeoIP查询完成，共找到0个与中国IP关联的域名。
+2025-04-08 18:51:43.419 | INFO     | __main__:filter_valid_rules:275 - 已保存33条规则到文件 all-cn.txt。
+2025-04-08 18:51:43.426 | INFO     | __main__:<module>:361 - 已保存46条规则到主输出文件 all.txt。
+2025-04-08 18:51:43.426 | INFO     | __main__:<module>:365 - 脚本运行完成。

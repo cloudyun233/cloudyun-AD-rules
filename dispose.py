@@ -71,7 +71,7 @@ class RuleParser:
                         self.valid_rules.append(rule)
                         if domain:
                             self.domain_set.add(domain)
-        logger.info(f"Parsed {len(self.valid_rules)} valid rules and {len(self.domain_set)} unique domains.")
+        logger.info(f"解析完成，共找到{len(self.valid_rules)}条有效规则和{len(self.domain_set)}个唯一域名。")
 
     async def __resolve(self, dnsresolver, domain):
         """
@@ -118,7 +118,7 @@ class RuleParser:
         测试域名列表中的域名，获取其有效性及IP地址。
         返回: (set: 有效域名集合, dict: {域名 -> {IPv4地址集合}}, set: 所有唯一IPv4地址集合)
         """
-        logger.info(f"Resolving domains using nameservers: {nameservers}...")
+        logger.info(f"正在使用DNS服务器 {nameservers} 解析域名...")
         dnsresolver = DNSResolver()
         dnsresolver.nameservers = nameservers  # 设置DNS服务器
         dnsresolver.port = port
@@ -150,9 +150,9 @@ class RuleParser:
 
             # 每完成 5000 个任务，输出一次进度
             if completed_count % 5000 == 0 or completed_count == total_domains:
-                logger.info(f"Resolved {completed_count}/{total_domains} domains ({completed_count / total_domains * 100:.2f}%) using {nameservers}")
+                logger.info(f"已完成 {completed_count}/{total_domains} 个域名解析({completed_count / total_domains * 100:.2f}%)，使用DNS服务器: {nameservers}")
 
-        logger.info(f"Finished resolving. Found {len(valid_domains_set)} valid domains and {len(all_ipv4_set)} unique IPv4 addresses using {nameservers}.")
+        logger.info(f"解析完成，共找到{len(valid_domains_set)}个有效域名和{len(all_ipv4_set)}个唯一IPv4地址，使用DNS服务器: {nameservers}。")
         return valid_domains_set, domain_to_ipv4_map, all_ipv4_set
 
     def filter_valid_rules(self):
@@ -178,7 +178,7 @@ class RuleParser:
         # 保存 all-lite.txt 文件
         lite_output_file = "all-lite.txt"
         self.save_rules_to_file(lite_rules, lite_output_file, "cloudyun-AD-rules-check-lite")
-        logger.info(f"Saved {len(lite_rules)} rules to {lite_output_file}.")
+        logger.info(f"已保存{len(lite_rules)}条规则到文件 {lite_output_file}。")
 
         # --- 3. 国外 DNS 解析 (补充) ---
         unresolved_domains = self.domain_set - china_valid_domains
@@ -186,12 +186,12 @@ class RuleParser:
         global_domain_ip_map = {}
         global_ipv4s = set()
         if unresolved_domains:
-            logger.info(f"Attempting to resolve {len(unresolved_domains)} domains using global DNS...")
+            logger.info(f"正在尝试使用全球DNS解析{len(unresolved_domains)}个未解析域名...")
             global_valid_domains, global_domain_ip_map, global_ipv4s = loop.run_until_complete(
                 self.__test_domains(unresolved_domains, global_nameservers)
             )
         else:
-             logger.info("No unresolved domains after China DNS check.")
+             logger.info("中国DNS检查后没有未解析的域名。")
 
         # --- 4. 合并结果 ---
         self.valid_domains = china_valid_domains.union(global_valid_domains)
@@ -201,8 +201,8 @@ class RuleParser:
         # Combine all unique IPv4s found
         self.ipv4_set = china_ipv4s.union(global_ipv4s)
 
-        logger.info(f"Total unique valid domains (China + Global): {len(self.valid_domains)}")
-        logger.info(f"Total unique IPv4 addresses found: {len(self.ipv4_set)}")
+        logger.info(f"唯一有效域名总数(中国+全球DNS): {len(self.valid_domains)}")
+        logger.info(f"发现的唯一IPv4地址总数: {len(self.ipv4_set)}")
 
         # --- 5. 准备 all.txt 的规则 ---
         all_txt_rules = []
@@ -211,17 +211,17 @@ class RuleParser:
             # 保留不需要域名解析的规则 或 所有解析成功的域名对应的规则
             if domain is None or domain in self.valid_domains:
                 all_txt_rules.append(rule)
-        logger.info(f"Filtered {len(all_txt_rules)} rules for all.txt.")
+        logger.info(f"已筛选{len(all_txt_rules)}条规则用于all.txt文件。")
 
         # --- 6. GeoIP 判断 (使用修正后的逻辑) ---
         self.cn_domains = set() # Reset cn_domains before check
         if self.ipv4_set: # Only proceed if we have IPs to check
-            logger.info("Starting GeoIP lookup for associated domains...")
+            logger.info("开始对关联域名进行GeoIP查询...")
             try:
                 # Ensure the GeoLite2-Country.mmdb file exists
                 geoip_db_path = 'GeoLite2-Country.mmdb'
                 if not os.path.exists(geoip_db_path):
-                     logger.error(f"GeoIP database not found at: {geoip_db_path}. Cannot generate all-cn.txt.")
+                     logger.error(f"未找到GeoIP数据库文件: {geoip_db_path}，无法生成all-cn.txt文件。")
                 else:
                     reader = geoip2.database.Reader(geoip_db_path)
                     processed_ips = 0
@@ -248,7 +248,7 @@ class RuleParser:
                         # Log progress after each domain if needed, or periodically based on IP count above
 
                     reader.close()
-                    logger.info(f"GeoIP lookup complete. Found {len(self.cn_domains)} domains associated with Chinese IPs.")
+                    logger.info(f"GeoIP查询完成，共找到{len(self.cn_domains)}个与中国IP关联的域名。")
 
             except Exception as e:
                 logger.error(f"Failed to load or use GeoIP database: {e}")
@@ -256,7 +256,7 @@ class RuleParser:
                 self.cn_domains = set()
 
         else:
-             logger.info("No IPv4 addresses found for GeoIP lookup.")
+             logger.info("未找到可用于GeoIP查询的IPv4地址。")
 
 
         # --- 7. 生成 all-cn.txt 文件 (移到循环外部) ---
@@ -272,11 +272,11 @@ class RuleParser:
              if cn_rules: # Only save if there are rules to save
                  cn_output_file = "all-cn.txt"
                  self.save_rules_to_file(cn_rules, cn_output_file, "cloudyun-AD-rules-check-cn")
-                 logger.info(f"Saved {len(cn_rules)} rules to {cn_output_file}.")
+                 logger.info(f"已保存{len(cn_rules)}条规则到文件 {cn_output_file}。")
              else:
-                 logger.info("No rules qualified for all-cn.txt.")
+                 logger.info("没有符合all-cn.txt文件要求的规则。")
         else:
-            logger.info("No domains identified in China and no non-domain rules found. Skipping all-cn.txt generation.")
+            logger.info("未发现位于中国的域名且无非域名规则，跳过all-cn.txt文件生成。")
 
 
         # --- 8. 返回 all.txt 的规则 ---
@@ -304,7 +304,7 @@ class RuleParser:
                 for line in rules:
                     f.write(line + "\n")
         except Exception as e:
-             logger.error(f"Failed to save rules to {filename}: {e}")
+             logger.error(f"保存规则到文件 {filename} 失败: {e}")
 
 
     def get_beijing_time(self):
@@ -314,22 +314,21 @@ class RuleParser:
             beijing_time = utc_now.astimezone(timezone(timedelta(hours=8)))
             return beijing_time.strftime('%Y-%m-%d %H:%M:%S')
         except Exception as e:
-            logger.error(f"Failed to get Beijing time: {e}")
+            logger.error(f"获取北京时间失败: {e}")
             # Fallback to UTC or a simple timestamp if needed
             return datetime.now().strftime('%Y-%m-%d %H:%M:%S UTC')
 
 
     def print_statistics(self):
         """打印统计信息"""
-        print("\n--- Statistics ---")
-        print(f"Total rules read (excluding header comments): {self.total_rules}")
-        print(f"Valid syntax rules parsed: {len(self.valid_rules)}")
-        print(f"Unique domains extracted: {len(self.domain_set)}")
-        print(f"Valid domains resolved (A or AAAA): {len(self.valid_domains)}")
-        print(f"Unique IPv4 addresses found: {len(self.ipv4_set)}")
-        # Changed label for clarity
-        print(f"Domains associated with CN IPs: {len(self.cn_domains)}")
-        print("--- End Statistics ---")
+        print("\n--- 统计信息 ---")
+        print(f"读取的总规则数(不包括注释): {self.total_rules}")
+        print(f"有效语法规则数: {len(self.valid_rules)}")
+        print(f"提取的唯一域名数: {len(self.domain_set)}")
+        print(f"解析成功的域名数(A或AAAA记录): {len(self.valid_domains)}")
+        print(f"发现的唯一IPv4地址数: {len(self.ipv4_set)}")
+        print(f"与中国IP关联的域名数: {len(self.cn_domains)}")
+        print("--- 统计结束 ---")
 
 
 if __name__ == "__main__":
@@ -339,10 +338,10 @@ if __name__ == "__main__":
     # Setup logger
     logger.add("dispose.log", rotation="1 MB", level="INFO") # Log INFO and above to file
 
-    logger.info("Script started.")
+    logger.info("脚本开始运行。")
     # 检查输入文件是否存在
     if not os.path.exists(input_file):
-        logger.error(f"Input file not found: {input_file}")
+        logger.error(f"未找到输入文件: {input_file}")
         exit(1)
 
     # 解析规则并过滤
@@ -359,8 +358,8 @@ if __name__ == "__main__":
     # 保存 all.txt 文件
     if final_all_rules:
         parser.save_rules_to_file(final_all_rules, output_file, "cloudyun-AD-rules-check") # Use the main output file name
-        logger.info(f"Saved {len(final_all_rules)} rules to {output_file}.")
+        logger.info(f"已保存{len(final_all_rules)}条规则到主输出文件 {output_file}。")
     else:
-        logger.warning(f"No rules qualified for the main output file: {output_file}")
+        logger.warning(f"没有符合主输出文件 {output_file} 要求的规则。")
 
-    logger.info("Script finished.")
+    logger.info("脚本运行完成。")
