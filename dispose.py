@@ -267,6 +267,7 @@ class RuleParser:
         print(f"有效规则数量: {len(self.valid_rules)}")
         print(f"检测域名数量: {len(self.domain_set)}")
         print(f"有效域名数量: {len(self.valid_domains)}")
+        print(f"中国IP规则数量: {len(self.cn_domains)}")
 
 
 if __name__ == "__main__":
