@@ -17,7 +17,7 @@ venv/
 Thumbs.db
 
 # 日志文件
-*.log
+# *.log
 
 # GeoIP 数据库文件（如果需要）
 # GeoLite2-Country.mmdb

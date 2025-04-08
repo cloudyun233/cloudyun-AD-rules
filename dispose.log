@@ -1,0 +1,15 @@
+2025-04-08 18:43:50.803 | INFO     | __main__:<module>:342 - Script started.
+2025-04-08 18:43:50.806 | INFO     | __main__:parse_rules:74 - Parsed 45 valid rules and 12 unique domains.
+2025-04-08 18:43:50.807 | INFO     | __main__:__test_domains:121 - Resolving domains using nameservers: ['119.29.29.29', '223.6.6.6', '180.184.1.1']...
+2025-04-08 18:43:50.821 | INFO     | __main__:__test_domains:153 - Resolved 12/12 domains (100.00%) using ['119.29.29.29', '223.6.6.6', '180.184.1.1']
+2025-04-08 18:43:50.822 | INFO     | __main__:__test_domains:155 - Finished resolving. Found 12 valid domains and 12 unique IPv4 addresses using ['119.29.29.29', '223.6.6.6', '180.184.1.1'].
+2025-04-08 18:43:50.823 | INFO     | __main__:filter_valid_rules:181 - Saved 45 rules to all-lite.txt.
+2025-04-08 18:43:50.824 | INFO     | __main__:filter_valid_rules:194 - No unresolved domains after China DNS check.
+2025-04-08 18:43:50.824 | INFO     | __main__:filter_valid_rules:204 - Total unique valid domains (China + Global): 12
+2025-04-08 18:43:50.824 | INFO     | __main__:filter_valid_rules:205 - Total unique IPv4 addresses found: 12
+2025-04-08 18:43:50.825 | INFO     | __main__:filter_valid_rules:214 - Filtered 45 rules for all.txt.
+2025-04-08 18:43:50.825 | INFO     | __main__:filter_valid_rules:219 - Starting GeoIP lookup for associated domains...
+2025-04-08 18:43:50.826 | INFO     | __main__:filter_valid_rules:251 - GeoIP lookup complete. Found 0 domains associated with Chinese IPs.
+2025-04-08 18:43:50.828 | INFO     | __main__:filter_valid_rules:275 - Saved 33 rules to all-cn.txt.
+2025-04-08 18:43:50.829 | INFO     | __main__:<module>:362 - Saved 45 rules to all.txt.
+2025-04-08 18:43:50.830 | INFO     | __main__:<module>:366 - Script finished.
