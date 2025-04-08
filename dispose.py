@@ -7,6 +7,7 @@ from loguru import logger
 from dns.asyncresolver import Resolver as DNSResolver
 from dns.rdatatype import RdataType as DNSRdataType
 from datetime import datetime, timezone, timedelta
+import geoip2.database
 
 class RuleParser:
     def __init__(self, input_file, output_file):
@@ -19,6 +20,8 @@ class RuleParser:
         self.header_comments = []  # 存储开头的注释行
         self.has_header_been_collected = False  # 标记是否已经收集过注释行
         self.seen_comments = set()  # 用于存储已经出现过的注释行
+        self.ipv4_set = set()  # 存储解析成功的IPv4地址
+        self.cn_domains = set()  # 存储位于中国的域名
 
     def __parse_line(self, line):
         """解析单行规则，提取域名"""
@@ -76,6 +79,8 @@ class RuleParser:
             query_object_a = await dnsresolver.resolve(qname=domain, rdtype="A")
             for item in query_object_a.response.answer:
                 if item.rdtype == DNSRdataType.A:
+                    for rdata in item:
+                        self.ipv4_set.add(rdata.address)  # 存储IPv4地址
                     return True  # 解析成功
 
             # 尝试解析 AAAA 记录（IPv6）
@@ -181,6 +186,51 @@ class RuleParser:
                 filtered_rules.append(rule)
 
         logger.info(f"Filtered {len(filtered_rules)} valid rules.")
+        
+        # 使用GeoIP数据库判断IP位置
+        if self.ipv4_set:
+            try:
+                reader = geoip2.database.Reader('GeoLite2-Country.mmdb')
+                for ip in self.ipv4_set:
+                    try:
+                        response = reader.country(ip)
+                        if response.country.iso_code == 'CN':
+                            # 找到对应的域名
+                            for rule in self.valid_rules:
+                                _, domain = self.__parse_line(rule)
+                                if domain and domain in china_valid_domains:
+                                    self.cn_domains.add(domain)
+                    except Exception:
+                        continue
+                
+                # 生成all-cn.txt文件
+                cn_rules = []
+                for rule in self.valid_rules:
+                    _, domain = self.__parse_line(rule)
+                    if domain is None or domain in self.cn_domains:
+                        cn_rules.append(rule)
+                
+                cn_output_file = "all-cn.txt"
+                with open(cn_output_file, "w", encoding="utf-8") as f:
+                    f.write("! Title: cloudyun-AD-rules-check-cn\n")
+                    f.write(f"! Version: {self.get_beijing_time()}\n")
+                    f.write(f"! Homepage: https://github.com/cloudyun233/cloudyun-AD-rules\n")
+                    f.write(f"! Total lines: {len(cn_rules)}\n")
+                    
+                    for comment in self.header_comments:
+                        if not (comment.startswith("! Title:") or 
+                                comment.startswith("! Version:") or 
+                                comment.startswith("! Homepage:") or 
+                                comment.startswith("! Total lines:")):
+                            f.write(comment + "\n")
+                            
+                    for line in cn_rules:
+                        f.write(line + "\n")
+                logger.info(f"Saved {len(cn_rules)} rules to {cn_output_file}.")
+                
+            except Exception as e:
+                logger.error(f"GeoIP database error: {e}")
+                
         return filtered_rules
 
     def save_rules(self, rules):
