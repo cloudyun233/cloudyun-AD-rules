@@ -28,6 +28,7 @@ jobs:
           pip install httpx
           pip install IPy tld
           pip install pytz
+          pip install geoip2
 
       - name: Run merge_rules.py
         run: python merge_rules.py
