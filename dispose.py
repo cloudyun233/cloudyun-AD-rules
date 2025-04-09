@@ -219,7 +219,7 @@ class RuleParser:
             logger.info("开始对关联域名进行GeoIP查询...")
             try:
                 # Ensure the GeoLite2-Country.mmdb file exists
-                geoip_db_path = 'GeoLite2-Country.mmdb'
+                geoip_db_path = 'Country.mmdb'
                 if not os.path.exists(geoip_db_path):
                      logger.error(f"未找到GeoIP数据库文件: {geoip_db_path}，无法生成all-cn.txt文件。")
                 else:

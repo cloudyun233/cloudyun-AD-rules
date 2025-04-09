@@ -31,7 +31,7 @@ jobs:
           pip install geoip2
 
       - name: Download GeoLite2 database
-        run: curl -L https://github.com/P3TERX/GeoLite.mmdb/raw/download/GeoLite2-Country.mmdb -o GeoLite2-Country.mmdb
+        run: curl -L https://github.com/Hackl0us/GeoIP2-CN/raw/release/Country.mmdb -o Country.mmdb
 
       - name: Run merge_rules.py
         run: python merge_rules.py
@@ -50,6 +50,6 @@ jobs:
           git config --global user.name "GitHub Actions"
           git config --global user.email "actions@github.com"
           git rm -f __pycache__/config.cpython-312.pyc || true
-          git add all.txt beforeall.txt all-lite.txt all-cn.txt GeoLite2-Country.mmdb dispose.log  # 添加所有生成文件和数据库
+          git add all.txt beforeall.txt all-lite.txt all-cn.txt Country.mmdb dispose.log  # 添加所有生成文件和数据库
           git commit -m "Update all.txt, beforeall.txt, and all-lite.txt - $(date +'%Y-%m-%d %H:%M:%S')"
           git push https://${{ secrets.PAT }}@github.com/${{ github.repository }}.git main
