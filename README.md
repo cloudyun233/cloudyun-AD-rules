@@ -10,6 +10,7 @@
 - **合并去重后的规则**：[beforeall.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/beforeall.txt)
 - **检测后的有效规则**（可能有检测错误）：[all.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all.txt)
 - **精简版有效规则**（仅国内 DNS 解析成功）：[all-lite.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all-lite.txt)
+- **中国IP关联规则**（通过GeoIP2-CN数据库验证）：[all-cn.txt](https://raw.githubusercontent.com/cloudyun233/cloudyun-AD-rules/refs/heads/main/all-cn.txt)
 
 ## 上游规则简介 📚
 
@@ -26,6 +27,20 @@
 3. **[hagezi/dns-blocklists](https://github.com/hagezi/dns-blocklists)**  
    - **特点**：专注于 DNS 层面的广告、恶意软件和跟踪保护。  
    - **优势**：提供多种过滤列表，涵盖广告、隐私保护和安全性需求。
+
+## GeoIP2数据库简介 🌍
+
+本仓库使用的中国IP关联规则验证数据库来自以下优质项目：
+
+4. **[Hackl0us/GeoIP2-CN](https://github.com/Hackl0us/GeoIP2-CN)**  
+   - **项目背景**：解决MaxMind的GeoLite2免费数据库存在的获取不便、数据量大、准确度低等问题。  
+   - **项目优势**：  
+     - **准确度高**：整合ipip.net和纯真IP数据库的中国大陆IP地址段信息  
+     - **实用精悍**：数据库大小仅约100KB，加载时间短、查询效率高  
+     - **CDN分发**：通过CDN全球分发，下载速度快  
+     - **自动化更新**：每3天自动更新，无需人工干预  
+   - **下载链接**：提供GitHub RAW和CDN加速两种下载方式  
+   - **配置方式**：参考项目Wiki中的文档教程在各工具中自定义GeoIP2数据库
 
 ## 检测和域名处理说明 🔍
 
