@@ -53,12 +53,13 @@
    - 对 `beforeall.txt` 中的每一行规则进行语法检查，确保规则格式正确。无效的规则将被过滤掉。
 
 3. **域名有效性检测**：  
-   - 从规则中提取域名，使用国内和国外 DNS 服务器（如 `114.114.114.114` 和 `8.8.8.8`）进行解析。  
+   - 从规则中提取域名，使用国内DNS服务器（`119.29.29.29`、`223.6.6.6`、`180.184.1.1`）和国外DNS服务器（`1.1.1.1`、`8.8.8.8`、`9.9.9.9`）进行解析。  
    - 去除无法解析的域名，确保最终规则中的域名都是有效的。
 
 4. **生成最终规则文件**：  
-   - 将有效的规则保存到 `all.txt` 文件中，并更新 `! Total lines:` 为有效规则的总数。  
-   - 生成 `all-lite.txt` 文件，仅包含通过国内 DNS 解析成功的域名，适用于对规则大小有严格限制的场景。
+   - 将有效的规则保存到 `all.txt` 文件中，包含所有通过国内或国外DNS解析成功的域名规则。
+   - 生成 `all-lite.txt` 文件，仅包含通过国内DNS解析成功的域名规则，适用于对规则大小有严格限制的场景。
+   - 生成 `all-cn.txt` 文件，仅包含通过GeoIP2-CN数据库验证与中国IP关联的域名规则，适用于只需过滤中国区域广告的场景。
 
 ## 自动化流程 ⚙️
 
@@ -71,14 +72,15 @@
    - 支持通过 GitHub Actions 手动触发流程，方便随时更新规则。
 
 3. **依赖安装**：  
-   - 在自动化流程中，会安装必要的 Python 依赖，包括 `requests`、`loguru`、`dnspython`、`httpx`、`IPy` 和 `tld`。
+   - 在自动化流程中，会安装必要的 Python 依赖，包括 `requests`、`loguru`、`dnspython`、`httpx`、`IPy`、`tld`、`pytz` 和 `geoip2`。
+   - 下载 GeoIP2-CN 数据库用于验证域名是否与中国IP关联。
 
 4. **规则处理**：  
    - 运行 `merge_rules.py` 脚本，下载并合并上游规则，生成 `beforeall.txt`。  
-   - 运行 `dispose.py` 脚本，对 `beforeall.txt` 中的规则进行语法检查和域名有效性检测，生成最终的 `all.txt` 和 `all-lite.txt`。
+   - 运行 `dispose.py` 脚本，对 `beforeall.txt` 中的规则进行语法检查和域名有效性检测，生成最终的 `all.txt`、`all-lite.txt` 和 `all-cn.txt`。
 
 5. **文件提交**：  
-   - 将生成的 `beforeall.txt`、`all.txt` 和 `all-lite.txt` 文件提交到 GitHub 仓库，并推送到 `main` 分支。
+   - 将生成的 `beforeall.txt`、`all.txt`、`all-lite.txt`、`all-cn.txt`、`Country.mmdb` 和日志文件提交到 GitHub 仓库，并推送到 `main` 分支。
 
 ## 关于 GitHub 的使用和代码编写 💻
 
